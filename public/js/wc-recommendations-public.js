@@ -5,32 +5,144 @@
  * @package    WC_Recommendations
  */
 
-(function($) {
-    'use strict';
+/**
+ * Public-facing Enhancements for WooCommerce Blocks Compatibility
+ * 
+ * Updates to the public-facing functionality to ensure proper integration with
+ * WooCommerce Blocks through modified JavaScript and tracking initialization.
+ */
 
-    // Initialize the public functionality
-    $(document).ready(function() {
-        // Track recommendation clicks
-        function initClickTracking() {
-            $(document).on('click', '.wc-recommendations-product-link', function(e) {
-                var $this = $(this);
-                var $container = $this.closest('.wc-recommendations');
-                
-                // Track click via AJAX
-                $.ajax({
-                    url: wc_recommendations_params.ajax_url,
-                    type: 'POST',
-                    data: {
-                        action: 'wc_recommendations_track_click',
-                        nonce: $this.data('nonce'),
-                        product_id: $container.data('context-id'),
-                        recommended_id: $this.data('product-id'),
-                        recommendation_type: $container.data('type'),
-                        placement: $container.data('placement')
-                    }
-                });
-            });
+// Add this code to public/js/wc-recommendations-public.js
+
+/**
+ * Enhanced version of the initClickTracking function that works with both
+ * traditional WooCommerce templates and WooCommerce Blocks
+ */
+function initClickTracking() {
+    // Remove any existing handlers to prevent duplicates
+    $(document).off('click', '.wc-recommendations-product-link');
+    
+    // Use event delegation with broader selector support
+    $(document).on('click', '.wc-recommendations-product-link, .wc-block-grid__product-link', function(e) {
+        var $this = $(this);
+        var $container = $this.closest('.wc-recommendations');
+        var productId, contextId, type, placement, nonce;
+        
+        // Different handling based on if this is a traditional template or block
+        if ($this.hasClass('wc-recommendations-product-link')) {
+            // Traditional WooCommerce template
+            productId = $this.data('product-id');
+            contextId = $container.data('context-id');
+            type = $container.data('type');
+            placement = $container.data('placement');
+            nonce = $this.data('nonce');
+        } else {
+            // WooCommerce Block
+            var $product = $this.closest('.wc-block-grid__product');
+            productId = $product.data('product-id');
+            
+            // Try to determine context
+            contextId = wc_recommendations_params.product_id || 0;
+            type = 'blocks';
+            
+            // Determine placement based on page
+            if ($('.woocommerce-cart').length) {
+                placement = 'cart';
+            } else if ($('.woocommerce-checkout').length) {
+                placement = 'checkout';
+            } else if ($('.woocommerce-account').length) {
+                placement = 'account';
+            } else if (wc_recommendations_params.product_id) {
+                placement = 'product';
+            } else {
+                placement = 'unknown';
+            }
+            
+            nonce = wc_recommendations_params.track_nonce;
         }
+        
+        // Track click via AJAX
+        $.ajax({
+            url: wc_recommendations_params.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'wc_recommendations_track_click',
+                nonce: nonce,
+                product_id: contextId,
+                recommended_id: productId,
+                recommendation_type: type,
+                placement: placement
+            }
+        });
+    });
+}
+
+/**
+ * Observer pattern to detect when new elements are added to the DOM
+ * This is particularly important for blocks which may load asynchronously
+ */
+function setupMutationObserver() {
+    if (typeof MutationObserver === 'undefined') {
+        return; // Not supported in this browser
+    }
+    
+    const observer = new MutationObserver((mutations) => {
+        let shouldReinitialize = false;
+        
+        mutations.forEach((mutation) => {
+            if (mutation.addedNodes && mutation.addedNodes.length) {
+                // Check if any of the added nodes or their children are relevant
+                for (let i = 0; i < mutation.addedNodes.length; i++) {
+                    const node = mutation.addedNodes[i];
+                    
+                    // Check if this is a block or recommendation element
+                    if (node.nodeType === 1 && ( // Element node
+                        $(node).hasClass('wc-recommendations') ||
+                        $(node).hasClass('wc-block-grid') ||
+                        $(node).find('.wc-recommendations').length ||
+                        $(node).find('.wc-block-grid').length
+                    )) {
+                        shouldReinitialize = true;
+                        break;
+                    }
+                }
+            }
+        });
+        
+        if (shouldReinitialize) {
+            initClickTracking();
+            initCarousels();
+        }
+    });
+    
+    // Start observing the entire document
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+}
+
+/**
+ * Initialize WooCommerce Blocks integration
+ */
+function initBlocksIntegration() {
+    // Listen for WooCommerce Blocks events
+    $(document.body).on('wc-blocks-loaded', function() {
+        console.log('WC Blocks loaded - reinitializing recommendations tracking');
+        initClickTracking();
+    });
+    
+    // Re-initialize on page updates for single page applications
+    $(document.body).on('wc-blocks-page-load', function() {
+        console.log('WC Blocks page load - reinitializing recommendations tracking');
+        initClickTracking();
+    });
+}
+
+
+
+
+
         
         // Initialize carousel functionality
         function initCarousels() {
@@ -410,18 +522,24 @@
             }
         }
         
-        // Utility function to format currency
-        function formatCurrency(amount, currency) {
-            return currency + parseFloat(amount).toFixed(2);
-        }
-        
-        // Initialize all modules
-        initClickTracking();
-        initCarousels();
-        initAjaxRecommendations();
-        initRealTimePersonalization();
-        initContextAwareRecommendations();
-        initAIFeatures();
-    });
 
-})(jQuery);
+
+
+// Enhanced document.ready to include blocks integration
+$(document).ready(function() {
+    // Initialize all modules including original functionality
+    initClickTracking();
+    initCarousels();
+    initAjaxRecommendations();
+    initRealTimePersonalization();
+    initContextAwareRecommendations();
+    
+    // Initialize new functionality for blocks compatibility
+    setupMutationObserver();
+    initBlocksIntegration();
+    
+    // Initialize AI features if available
+    if (typeof initAIFeatures === 'function') {
+        initAIFeatures();
+    }
+});

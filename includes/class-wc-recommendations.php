@@ -91,7 +91,6 @@ class WC_Recommendations {
         require_once WC_RECOMMENDATIONS_PLUGIN_DIR . 'admin/class-wc-recommendations-admin.php';
         require_once WC_RECOMMENDATIONS_PLUGIN_DIR . 'admin/class-wc-recommendations-settings.php';
         require_once WC_RECOMMENDATIONS_PLUGIN_DIR . 'admin/class-wc-recommendations-metabox.php';
-        require_once WC_RECOMMENDATIONS_PLUGIN_DIR . 'admin/class-wc-recommendations-dashboard.php';
 
         /**
          * The class responsible for defining all actions that occur in the public-facing
@@ -118,16 +117,6 @@ class WC_Recommendations {
          * The class responsible for machine learning enhancements.
          */
         require_once WC_RECOMMENDATIONS_PLUGIN_DIR . 'includes/class-wc-recommendations-ml.php';
-        
-        /**
-         * The class responsible for A/B testing.
-         */
-        require_once WC_RECOMMENDATIONS_PLUGIN_DIR . 'includes/class-wc-recommendations-ab-testing.php';
-        
-        /**
-         * The class responsible for analytics processing.
-         */
-        require_once WC_RECOMMENDATIONS_PLUGIN_DIR . 'includes/class-wc-recommendations-analytics.php';
         
         /**
          * The class responsible for AJAX handlers.
@@ -172,7 +161,6 @@ class WC_Recommendations {
         $plugin_admin = new WC_Recommendations_Admin();
         $plugin_settings = new WC_Recommendations_Settings();
         $plugin_metabox = new WC_Recommendations_Metabox();
-        $plugin_dashboard = new WC_Recommendations_Dashboard();
 
         // Admin assets
         $this->loader->add_action('admin_enqueue_scripts', $plugin_admin, 'enqueue_styles');
@@ -187,9 +175,6 @@ class WC_Recommendations {
         // Product metabox
         $this->loader->add_action('add_meta_boxes', $plugin_metabox, 'add_meta_boxes');
         $this->loader->add_action('woocommerce_process_product_meta', $plugin_metabox, 'save_meta_boxes', 10, 2);
-        
-        // Dashboard
-        $this->loader->add_action('wp_ajax_wc_recommendations_get_analytics', $plugin_dashboard, 'ajax_get_analytics');
     }
 
     /**

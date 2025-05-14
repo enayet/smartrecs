@@ -90,7 +90,6 @@ class WC_Recommendations_Settings {
         $sanitized['enable_exit_intent'] = isset($input['enable_exit_intent']) ? 'yes' : 'no';
         $sanitized['enable_real_time_personalization'] = isset($input['enable_real_time_personalization']) ? 'yes' : 'no';
         $sanitized['enable_ai_content'] = isset($input['enable_ai_content']) ? 'yes' : 'no';
-        $sanitized['enable_analytics'] = isset($input['enable_analytics']) ? 'yes' : 'no';
         
         return $sanitized;
     }
@@ -126,8 +125,7 @@ class WC_Recommendations_Settings {
             'enable_smart_bundles'           => 'no',
             'enable_exit_intent'             => 'no',
             'enable_real_time_personalization' => 'no',
-            'enable_ai_content'              => 'no',
-            'enable_analytics'               => 'yes'
+            'enable_ai_content'              => 'no'
         );
     }
     
@@ -224,49 +222,6 @@ class WC_Recommendations_Settings {
                         </fieldset>
                     </td>
                 </tr>
-                
-                <tr class="ai-setting" <?php echo $settings['enable_ai'] !== 'yes' ? 'style="display:none"' : ''; ?>>
-                    <th scope="row"><?php _e('AI Assistant', 'wc-recommendations'); ?></th>
-                    <td>
-                        <div class="ai-assistant-container">
-                            <div class="ai-assistant-header">
-                                <div class="ai-assistant-icon">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 1.11-.9 2-2 2-1.1 0-2 .9-2 2v2h2v-2c2.21 0 4-1.79 4-4s-1.79-4-4-4zm-2 10h4v2h-4v-2z" fill="currentColor"/></svg>
-                                </div>
-                                <div class="ai-assistant-title"><?php _e('AI Recommendation Assistant', 'wc-recommendations'); ?></div>
-                            </div>
-                            <div class="ai-assistant-message">
-                                <?php _e('Click "Run AI Analysis" to analyze your store data and get intelligent suggestions for optimizing your product recommendations.', 'wc-recommendations'); ?>
-                            </div>
-                            <div class="ai-assistant-suggestions"></div>
-                            <div class="ai-assistant-actions">
-                                <button type="button" class="button run-ai-analysis-button"><?php _e('Run AI Analysis', 'wc-recommendations'); ?></button>
-                            </div>
-                            
-                            <div class="ai-model-info">
-                                <p><strong><?php _e('AI Model Status:', 'wc-recommendations'); ?></strong> <span class="ai-model-status">
-                                    <?php 
-                                    $last_trained = get_option('wc_recommendations_ai_last_trained');
-                                    if ($last_trained) {
-                                        echo __('Trained: ', 'wc-recommendations') . date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($last_trained));
-                                    } else {
-                                        echo __('Not trained', 'wc-recommendations');
-                                    }
-                                    ?>
-                                </span></p>
-                                <button type="button" class="button train-ai-model-button"><?php _e('Train AI Model', 'wc-recommendations'); ?></button>
-                            </div>
-                            
-                            <div class="ai-training-progress" style="display: none;">
-                                <p><?php _e('Training AI model with your store data...', 'wc-recommendations'); ?></p>
-                                <div class="ai-progress-bar">
-                                    <div class="ai-progress-bar-inner"></div>
-                                </div>
-                                <p class="ai-training-status"><?php _e('Initializing...', 'wc-recommendations'); ?></p>
-                            </div>
-                        </div>
-                    </td>
-                </tr>
             </table>
             
             <script>
@@ -306,17 +261,6 @@ class WC_Recommendations_Settings {
                             <?php _e('Enable exit intent recommendation popup', 'wc-recommendations'); ?>
                         </label>
                         <p class="description"><?php _e('Shows personalized recommendations in a popup when users are about to leave your site.', 'wc-recommendations'); ?></p>
-                    </td>
-                </tr>
-                
-                <tr>
-                    <th scope="row"><?php _e('Analytics', 'wc-recommendations'); ?></th>
-                    <td>
-                        <label for="enable_analytics">
-                            <input type="checkbox" name="settings[enable_analytics]" id="enable_analytics" value="yes" <?php checked($settings['enable_analytics'], 'yes'); ?>>
-                            <?php _e('Enable recommendation analytics', 'wc-recommendations'); ?>
-                        </label>
-                        <p class="description"><?php _e('Collect and analyze data about recommendation performance.', 'wc-recommendations'); ?></p>
                     </td>
                 </tr>
                 

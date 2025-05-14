@@ -67,15 +67,12 @@ class WC_Recommendations_Admin {
         
         // Only enqueue on our plugin pages
         if ($screen && strpos($screen->id, 'wc-recommendations') !== false) {
-            wp_enqueue_script('chart-js', 'https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js', array(), '3.7.1', true);
-            wp_enqueue_script('wc-recommendations-admin', plugin_dir_url(__FILE__) . 'js/wc-recommendations-admin.js', array('jquery', 'chart-js'), WC_RECOMMENDATIONS_VERSION, true);
+            wp_enqueue_script('wc-recommendations-admin', plugin_dir_url(__FILE__) . 'js/wc-recommendations-admin.js', array('jquery'), WC_RECOMMENDATIONS_VERSION, true);
             
             wp_localize_script('wc-recommendations-admin', 'wc_recommendations_admin', array(
                 'ajax_url' => admin_url('admin-ajax.php'),
                 'nonce' => array(
-                    'settings' => wp_create_nonce('wc_recommendations_settings'),
-                    'analytics' => wp_create_nonce('wc_recommendations_analytics'),
-                    'test_results' => wp_create_nonce('wc_recommendations_test_results')
+                    'settings' => wp_create_nonce('wc_recommendations_settings')
                 ),
                 'i18n' => array(
                     'saved' => __('Settings saved successfully.', 'wc-recommendations'),
@@ -109,24 +106,6 @@ class WC_Recommendations_Admin {
             'wc-recommendations',
             array($this, 'display_settings_page')
         );
-        
-        add_submenu_page(
-            'wc-recommendations',
-            __('Analytics', 'wc-recommendations'),
-            __('Analytics', 'wc-recommendations'),
-            'manage_woocommerce',
-            'wc-recommendations-analytics',
-            array($this, 'display_analytics_page')
-        );
-        
-        add_submenu_page(
-            'wc-recommendations',
-            __('A/B Testing', 'wc-recommendations'),
-            __('A/B Testing', 'wc-recommendations'),
-            'manage_woocommerce',
-            'wc-recommendations-testing',
-            array($this, 'display_testing_page')
-        );
     }
     
     /**
@@ -143,33 +122,6 @@ class WC_Recommendations_Admin {
     }
     
     /**
-     * Display analytics page.
-     *
-     * @since    1.0.0
-     */
-    public function display_analytics_page() {
-        // Get date range
-        $end_date = date('Y-m-d');
-        $start_date = date('Y-m-d', strtotime('-30 days'));
-        
-        // Include analytics page template
-        include_once WC_RECOMMENDATIONS_PLUGIN_DIR . 'admin/views/analytics.php';
-    }
-    
-    /**
-     * Display A/B testing page.
-     *
-     * @since    1.0.0
-     */
-    public function display_testing_page() {
-        // Get tests
-        $tests = get_option('wc_recommendation_ab_tests', array());
-        
-        // Include testing page template
-        include_once WC_RECOMMENDATIONS_PLUGIN_DIR . 'admin/views/testing.php';
-    }
-    
-    /**
      * Add action links on plugins page.
      *
      * @since    1.0.0
@@ -178,8 +130,7 @@ class WC_Recommendations_Admin {
      */
     public function add_action_links($links) {
         $plugin_links = array(
-            '<a href="' . admin_url('admin.php?page=wc-recommendations') . '">' . __('Settings', 'wc-recommendations') . '</a>',
-            '<a href="' . admin_url('admin.php?page=wc-recommendations-analytics') . '">' . __('Analytics', 'wc-recommendations') . '</a>'
+            '<a href="' . admin_url('admin.php?page=wc-recommendations') . '">' . __('Settings', 'wc-recommendations') . '</a>'
         );
         
         return array_merge($plugin_links, $links);
