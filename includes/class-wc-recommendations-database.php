@@ -35,10 +35,7 @@ class WC_Recommendations_Database {
         return array(
             'interactions' => $wpdb->prefix . 'wc_recommendation_interactions',
             'purchases'    => $wpdb->prefix . 'wc_recommendation_purchases',
-            'tracking'     => $wpdb->prefix . 'wc_recommendation_tracking',
-            'ab_tests'     => $wpdb->prefix . 'wc_recommendation_ab_tests',
-            'ab_impressions' => $wpdb->prefix . 'wc_recommendation_ab_impressions',
-            'ab_conversions' => $wpdb->prefix . 'wc_recommendation_ab_conversions'
+            'tracking'     => $wpdb->prefix . 'wc_recommendation_tracking'
         );
     }
 
@@ -107,55 +104,11 @@ class WC_Recommendations_Database {
         ) $charset_collate;";
         dbDelta($sql);
         
-        // A/B Tests table
-        $sql = "CREATE TABLE " . $tables['ab_tests'] . " (
-            id bigint(20) NOT NULL AUTO_INCREMENT,
-            name varchar(100) NOT NULL,
-            description text NOT NULL,
-            active tinyint(1) NOT NULL DEFAULT 0,
-            start_date datetime NOT NULL,
-            end_date datetime DEFAULT NULL,
-            created_at datetime NOT NULL,
-            PRIMARY KEY (id),
-            KEY active (active)
-        ) $charset_collate;";
-        dbDelta($sql);
+
         
-        // A/B Test Impressions table
-        $sql = "CREATE TABLE " . $tables['ab_impressions'] . " (
-            id bigint(20) NOT NULL AUTO_INCREMENT,
-            test_id bigint(20) NOT NULL,
-            variant_id varchar(50) NOT NULL,
-            user_id bigint(20) NOT NULL DEFAULT 0,
-            session_id varchar(100) NOT NULL DEFAULT '',
-            created_at datetime NOT NULL,
-            PRIMARY KEY (id),
-            KEY test_id (test_id),
-            KEY variant_id (variant_id),
-            KEY user_id (user_id),
-            KEY session_id (session_id)
-        ) $charset_collate;";
-        dbDelta($sql);
+
         
-        // A/B Test Conversions table
-        $sql = "CREATE TABLE " . $tables['ab_conversions'] . " (
-            id bigint(20) NOT NULL AUTO_INCREMENT,
-            test_id bigint(20) NOT NULL,
-            variant_id varchar(50) NOT NULL,
-            conversion_type varchar(50) NOT NULL,
-            user_id bigint(20) NOT NULL DEFAULT 0,
-            session_id varchar(100) NOT NULL DEFAULT '',
-            order_id bigint(20) DEFAULT NULL,
-            value decimal(10,2) DEFAULT NULL,
-            created_at datetime NOT NULL,
-            PRIMARY KEY (id),
-            KEY test_id (test_id),
-            KEY variant_id (variant_id),
-            KEY conversion_type (conversion_type),
-            KEY user_id (user_id),
-            KEY session_id (session_id)
-        ) $charset_collate;";
-        dbDelta($sql);
+
         
         // Update version
         update_option('wc_recommendations_db_version', self::DB_VERSION);

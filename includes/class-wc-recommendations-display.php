@@ -28,60 +28,81 @@ class WC_Recommendations_Display {
      */
     public function display_product_recommendations() {
         global $product;
-        
+
         if (!$product) {
             return;
         }
-        
+
         // Get settings
         $settings = get_option('wc_recommendations_settings', []);
         $recommendation_type = !empty($settings['product_page_type']) ? $settings['product_page_type'] : 'frequently_bought';
         $limit = !empty($settings['limit']) ? intval($settings['limit']) : 4;
-        
+
         // Get recommendation engine
         $engine = new WC_Recommendations_Engine();
         $recommendations = [];
-        
+
         // Get recommendations based on type
         switch ($recommendation_type) {
             case 'frequently_bought':
                 $recommendations = $engine->get_frequently_bought_together($product->get_id(), $limit);
                 $title = __('Frequently Bought Together', 'wc-recommendations');
                 break;
-                
+
             case 'also_viewed':
                 $recommendations = $engine->get_also_viewed($product->get_id(), $limit);
                 $title = __('Customers Also Viewed', 'wc-recommendations');
                 break;
-                
+
             case 'similar':
                 $recommendations = $engine->get_similar_products($product->get_id(), $limit);
                 $title = __('Similar Products', 'wc-recommendations');
                 break;
-                
+
             case 'personalized':
                 $recommendations = $engine->get_personalized_recommendations($limit);
                 $title = __('Recommended For You', 'wc-recommendations');
                 break;
-                
+
+            case 'trending':
+                // Add this case to handle trending products
+                $ml = new WC_Recommendations_ML();
+                $recommendations = $ml->get_trending_products($limit);
+                $title = __('Trending Products', 'wc-recommendations');
+                break;
+
+            case 'seasonal':
+                // Add this case to handle seasonal products
+                $ml = new WC_Recommendations_ML();
+                $recommendations = $ml->get_seasonal_recommendations($limit);
+                $title = __('Seasonal Recommendations', 'wc-recommendations');
+                break;
+
+            case 'enhanced':
+                // Add this case to handle enhanced recommendations
+                $ml = new WC_Recommendations_ML();
+                $recommendations = $ml->get_enhanced_recommendations($product->get_id(), get_current_user_id(), $limit);
+                $title = __('Enhanced Recommendations', 'wc-recommendations');
+                break;
+
             default:
                 return;
         }
-        
+
         // Only display if we have recommendations
         if (empty($recommendations)) {
             return;
         }
-        
+
         // Get recommendation IDs for tracking
         $recommendation_ids = array_map(function($product) {
             return $product->get_id();
         }, $recommendations);
-        
+
         // Track impressions
         $tracker = new WC_Recommendations_Tracker();
         $tracker->track_impressions($recommendation_type, $product->get_id(), $recommendation_ids, 'product');
-        
+
         // Render the recommendations
         $this->render_recommendations(
             $recommendations,

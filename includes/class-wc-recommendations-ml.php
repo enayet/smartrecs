@@ -289,13 +289,22 @@ class WC_Recommendations_ML {
      */
     public function get_trending_products($limit = 4, $days = 7) {
         global $wpdb;
-        
+
         $tables = WC_Recommendations_Database::get_table_names();
         $table = $tables['interactions'];
-        
+
         // Get date threshold
         $date_threshold = date('Y-m-d H:i:s', strtotime("-$days days"));
-        
+
+        // Check if the table exists
+        $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$table'") === $table;
+
+        if (!$table_exists) {
+            // Table doesn't exist, fall back to popular products
+            $engine = new WC_Recommendations_Engine();
+            return $engine->get_popular_products($limit);
+        }
+
         // Get products with increasing views
         $query = $wpdb->prepare("
             SELECT product_id, COUNT(*) as views
@@ -306,14 +315,15 @@ class WC_Recommendations_ML {
             ORDER BY views DESC
             LIMIT %d
         ", $date_threshold, $limit);
-        
+
         $results = $wpdb->get_results($query);
-        
+
         if (empty($results)) {
+            // No trending data, fall back to popular products
             $engine = new WC_Recommendations_Engine();
             return $engine->get_popular_products($limit);
         }
-        
+
         // Get products
         $products = [];
         foreach ($results as $result) {
@@ -322,14 +332,15 @@ class WC_Recommendations_ML {
                 $products[] = $product;
             }
         }
-        
+
         // If we don't have enough products, supplement with popular products
         if (count($products) < $limit) {
             $engine = new WC_Recommendations_Engine();
             $popular_products = $engine->get_popular_products($limit - count($products));
             $products = array_merge($products, $popular_products);
         }
-        
+
         return $products;
     }
+    
 }
