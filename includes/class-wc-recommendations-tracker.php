@@ -48,6 +48,15 @@ class WC_Recommendations_Tracker {
         
         // Get product and session data
         global $product;
+        
+        // Ensure $product is a valid WC_Product object
+        if (!is_object($product)) {
+            $product = wc_get_product(get_the_ID());
+            if (!$product) {
+                return;
+            }
+        }
+        
         $product_id = $product->get_id();
         $session_id = WC()->session->get_customer_id();
         
